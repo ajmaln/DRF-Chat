@@ -1,0 +1,55 @@
+{% extends 'chat/index.html' %}
+{% block form %}
+    <h3>
+    Register
+    </h3>
+    <form id="register-form" class="form-group">
+        {% csrf_token %}
+        <div class="row">
+            <div class="input-field col s12">
+                <input name="username" id="id_username" type="text" class="validate">
+                <label for="id_username" data-error="Username already taken">Username</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <input name="password" id="id_password" type="password">
+                <label for="id_password">Password</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s12">
+                <input name="password2" id="id_password2" type="password">
+                <label for="id_password2">Repeat Password</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+            <div class="right">
+                <button class="btn blue waves-effect waves-light pull-s12">Register</button>
+            </div>
+            </div>
+        </div>
+    </form>
+    <script>
+    $(function () {
+        $('#register-form').on('submit', function (event) {
+            event.preventDefault();
+            var username = $('#id_username').val();
+            var password;
+            if(username !== '')
+            {
+                password = $('#id_password').val();
+                if(password !== '' && password === $('#id_password2').val()){
+                    register(username, password);
+                }
+                else{
+                    alert("The passwords doesn't match!");
+                }
+            }
+            else
+                alert("Please enter a valid username!");
+        })
+    })
+    </script>
+{% endblock %}
