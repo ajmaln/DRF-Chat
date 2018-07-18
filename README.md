@@ -26,6 +26,7 @@ pip install -r requirements.txt
 Do Database migrations
 ```
 ./manage.py makemigrations
+./manage.py makemigrations chat
 ./manage.py migrate
 ```
 
