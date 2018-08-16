@@ -36,10 +36,9 @@
         $('#register-form').on('submit', function (event) {
             event.preventDefault();
             var username = $('#id_username').val();
-            var password;
             if(username !== '')
             {
-                password = $('#id_password').val();
+                var password = $('#id_password').val();
                 if(password !== '' && password === $('#id_password2').val()){
                     register(username, password);
                 }

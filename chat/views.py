@@ -16,6 +16,7 @@ def index(request):
     if request.method == "POST":
         username, password = request.POST['username'], request.POST['password']
         user = authenticate(username=username, password=password)
+        print(user)
         if user is not None:
             login(request, user)
         else:
@@ -38,11 +39,11 @@ def user_list(request, pk=None):
 
     elif request.method == 'POST':
         data = JSONParser().parse(request)
-        serializer = UserSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+        try:
+            User.objects.create_user(username=data['username'], password=data['password'])
+            return JsonResponse(data, status=201)
+        except Exception:
+            return JsonResponse({'error': "Something went wrong"}, status=400)
 
 
 @csrf_exempt
