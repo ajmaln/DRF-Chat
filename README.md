@@ -1,13 +1,15 @@
 # DRF-Chat
 Live Chat using Django REST Framework
 
+(_One of my just-for-fun projects_)
+
 ## Installation
 
 This app uses memcached to store Users online status, So you will need to install it.
 
 On Ubuntu:
 ```
-sudo apt install memchached
+sudo apt install memcached
 ```
 
 Install virtualenv
