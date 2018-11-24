@@ -3,6 +3,13 @@ Live Chat using Django REST Framework
 
 ## Installation
 
+This app uses memcached to store Users online status, So you will need to install it.
+
+On Ubuntu:
+```
+sudo apt install memchached
+```
+
 Install virtualenv
 ```
 pip install virtualenv
