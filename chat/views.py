@@ -4,7 +4,7 @@ from django.http.response import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from chat.models import Message
+from chat.models import Message, UserProfile
 from chat.serializers import MessageSerializer, UserSerializer
 
 
@@ -40,7 +40,8 @@ def user_list(request, pk=None):
     elif request.method == 'POST':
         data = JSONParser().parse(request)
         try:
-            User.objects.create_user(username=data['username'], password=data['password'])
+            user = User.objects.create_user(username=data['username'], password=data['password'])
+            UserProfile.objects.create(user=user)
             return JsonResponse(data, status=201)
         except Exception:
             return JsonResponse({'error': "Something went wrong"}, status=400)
