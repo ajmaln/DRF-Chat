@@ -1,4 +1,4 @@
-Django==2.2.13
+Django==2.2.18
 django-widget-tweaks==1.4.1
 djangorestframework==3.9.1
 pytz==2017.3
