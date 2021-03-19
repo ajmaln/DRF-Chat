@@ -1,5 +1,5 @@
 Django==2.2.13
 django-widget-tweaks==1.4.1
-djangorestframework==3.9.1
+djangorestframework==3.11.2
 pytz==2017.3
 python-memcached==1.11.0
