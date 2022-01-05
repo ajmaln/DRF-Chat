@@ -1,3 +1,4 @@
+from datetime import time
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse, HttpResponse
@@ -46,6 +47,46 @@ def user_list(request, pk=None):
         except Exception:
             return JsonResponse({'error': "Something went wrong"}, status=400)
 
+## Rasa part start 
+
+
+# importing the requests library
+import requests
+  
+# api-endpoint
+URL = "http://10.100.14.175:5001/webhooks/rest/webhook"
+
+def call_rasa(data):
+
+    # defining a params dict for the parameters to be sent to the API
+    PARAMS = {
+            "sender": data["sender"],
+            "message": data["message"]
+        }
+    # sending get request and saving the response as response object
+    r = requests.post(url = URL, json = PARAMS)
+    print("*"*100, '\n')
+    print(type(r.text), r.text)
+    bot_result =  eval(r.text)
+    print(bot_result, type(bot_result))
+    # r = [{"recipient_id":"test","text":"Can you please type your account number?"}]
+    for item in bot_result:
+        print(item)
+        bot_data = {
+            "sender": "rasa-bot",
+            "receiver": item["recipient_id"],
+            "message": item["text"],
+            "timestamp": "1234454"
+        }
+        user_id = int(User.objects.get(username=item["recipient_id"]).pk)
+        requests.post(url = f'http://10.100.14.175:8100/api/messages/4/{user_id}',\
+                json=bot_data)
+
+  
+
+## rasa end
+
+
 
 @csrf_exempt
 def message_list(request, sender=None, receiver=None):
@@ -61,11 +102,17 @@ def message_list(request, sender=None, receiver=None):
         return JsonResponse(serializer.data, safe=False)
 
     elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = MessageSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
+        try:
+            data = JSONParser().parse(request)
+            # data = {'sender': 'ridwan', 'receiver': 'rasa-bot', 'message': 'HELLO'}
+            serializer = MessageSerializer(data=data) 
+            
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data, status=201)
+        finally:
+            if data["receiver"] == 'rasa-bot':
+                call_rasa(data)
         return JsonResponse(serializer.errors, status=400)
 
 
