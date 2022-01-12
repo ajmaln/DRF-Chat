@@ -1,8 +1,11 @@
 {% extends 'chat/index.html' %}
 {% block body %}
-<nav class="blue lighten-3">
+<nav class="black lighten-3">
     <div class="nav-wrapper container">
-      <a href="#" class="brand-logo">Chat</a>
+        <b> Username: {{ request.user.username }} id: {{ request.user.id }} </b>
+       
+        
+        <a href="#" class="brand-logo" style="font-size: medium;">Chatting with {{receiver.username}} "id: {{receiver.id}}"</a>
       <ul id="nav-mobile" class="right hide-on-med-and-down">
           <li><a href="">{{ request.user.username }}</a></li>
           <li><a href="{% url 'logout' %}"><i class="material-icons">power_settings_new</i></a></li>
@@ -10,26 +13,26 @@
     </div>
 </nav>
     <div class="section" style="height: 80vh">
-    <div class="row">
-        <div class="col s3">
-        <div class="card">
-            <div id="users" class="collection">
+    <div class="row" style="background-color: rgb(230, 234, 236);">
+        <div class="col s3" style="background-color: rgb(247, 233, 236);">
+        <div class="card" >
+            <div id="users" class="collection" style="background-color: rgb(245, 231, 234);">
                 
             </div>
         </div>
         </div>
         <div class="col s9">
-            <div class="card">
+            <div class="card" style="background-color: rgb(236, 162, 178);">
             <div id="board" class="section grey lighten-3" style="height: 68vh; padding: 5px; overflow-y: scroll">
                 {% block messages %}
 
                 {% endblock %}
             </div>
-            <form id="chat-box" class="form-group {% block hide %}hide{% endblock %}" method="post">
+            <form id="chat-box" class="form-group {% block hide %}hide{% endblock %}" method="post" style="background-color: rgb(242, 235, 245);">
                 {% csrf_token %}
                 <div class="row">
                     <div class="col s11">
-                        <div class="input-field">
+                        <div class="input-field" style="background-color: rgb(254, 250, 255);">
                             <input id="id_message" name="message" type="text" placeholder="Type your message..">
                         </div>
                     </div>
