@@ -133,12 +133,30 @@ def chat_view(request):
                       {'users': User.objects.exclude(username=request.user.username)})
 
 
-def message_view(request, sender, receiver):
+def message_view(request, sender, receiver,agent = 6):
     if not request.user.is_authenticated:
         return redirect('index')
+    
+    messages = Message.objects.filter(sender_id=sender, receiver_id=receiver) |Message.objects.filter(sender_id=receiver, receiver_id=sender)
+
+    if sender == 9:
+        agent_messages = Message.objects.filter(sender_id=9, receiver_id=6) |Message.objects.filter(sender_id=6, receiver_id=9)
+        messages = agent_messages | messages
     if request.method == "GET":
         return render(request, "chat/messages.html",
                       {'users': User.objects.exclude(username=request.user.username),
                        'receiver': User.objects.get(id=receiver),
-                       'messages': Message.objects.filter(sender_id=sender, receiver_id=receiver) |
-                                   Message.objects.filter(sender_id=receiver, receiver_id=sender)})
+                       'messages': messages})
+
+
+
+# unit test 
+# from chat.models import Message
+# x = Message.objects.filter(sender_id=9, receiver_id=6) |Message.objects.filter(sender_id=6, receiver_id=9)
+# for item in x:
+# ...     print(item.sender_id)
+# 
+
+# >>> messages = Message.objects.filter(sender_id=9, receiver_id=4) |Message.objects.filter(sender_id=4, receiver_id=6)                     
+# >>> agent_messages = Message.objects.filter(sender_id=9, receiver_id=6) |Message.objects.filter(sender_id=6, receiver_id=9)
+## total_messages = agent_messages | messages
