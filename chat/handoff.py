@@ -26,7 +26,7 @@ def handoff_checking(data, user_profile):
             # Cancel to sent the message to the bot 
         if  x.get_handoff_to == 'bot':
             user_profile.update(api_sent="Y")
-            return "rasa-bot"
+            return "fin-agent"
             request_to_bot() # API 
 
     
@@ -50,7 +50,7 @@ def receiver_checking(data, user_profile):
         if x.get_handoff_to == 'human':
             return 'agent'
         if  x.get_handoff_to == 'bot':
-            return "rasa-bot"
+            return "fin-agent"
 
 
 

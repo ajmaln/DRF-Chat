@@ -67,7 +67,7 @@ def message_list(request, sender=None, receiver=None):
     elif request.method == 'POST':
         try:
             data = JSONParser().parse(request)
-            # data = {'sender': 'ridwan', 'receiver': 'rasa-bot', 'message': 'HELLO'}
+            # data = {'sender': 'ridwan', 'receiver': 'fin-agent', 'message': 'HELLO'}
             serializer = MessageSerializer(data=data) 
 
 
@@ -77,8 +77,8 @@ def message_list(request, sender=None, receiver=None):
 
             # hand off section 
             if data['message'] == 'bot':
-                data['receiver'] = 'rasa-bot'
-                user_profile.update(handoff_to="rasa-bot")
+                data['receiver'] = 'fin-agent'
+                user_profile.update(handoff_to="fin-agent")
             elif data['message'] == 'human':
                 data['receiver'] = 'agent'
                 user_profile.update(handoff_to="agent")
@@ -89,7 +89,7 @@ def message_list(request, sender=None, receiver=None):
                 data['receiver'] = receiver
                 print(">"*1000, data)
                 
-                if data['receiver'] == 'rasa-bot' and x.api_sent == 'N' :
+                if data['receiver'] == 'fin-agent' and x.api_sent == 'N' :
                     user_profile.update(api_sent="Y")
                     call_rasa_bot(data,user_profile)
                     return 
@@ -101,7 +101,7 @@ def message_list(request, sender=None, receiver=None):
                 x = user_profile[0]
             print("-"*1000,data, x.get_handoff_to)
             if x.get_handoff_to == 'agent' and data['sender'] == 'agent':
-                data['sender'] = 'rasa-bot'
+                data['sender'] = 'fin-agent'
                 print("^"*1000,data)
                 # requests.post(url = f'http://{chat_system_address}/api/messages/4/{user_id}',\
                 #     json=data)

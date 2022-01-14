@@ -27,7 +27,7 @@ def extract_rasa_response(data):
 
 def call_rasa_bot(data, user_profile):
     
-    # first submit the message to rasa-bot
+    # first submit the message to fin-agent
     p1 = Process(target = requests.post(url = f'{CHAT_SYSTEM_URL}9/4',\
                 json=data))
     # then post the response to RASA Webhook 
@@ -43,7 +43,7 @@ def call_rasa_bot(data, user_profile):
     for item in bot_result:
         print(item)
         bot_data = {
-            "sender": "rasa-bot",
+            "sender": "fin-agent",
             "receiver": item["recipient_id"],
             "message": item["text"],
             "timestamp": "1234454"
