@@ -4,7 +4,7 @@
     {% for message in messages %}
     {% if message.sender == request.user %}
 <div class="card-panel right" style="width: 75%; position: relative; background-color: rgb(49, 125, 160);" >
-    <div style="position: absolute; top: 0; left:3px; font-weight: bolder; color: #000;" class="title">You</div>
+    <!-- <div style="position: absolute; top: 0; left:3px; font-weight: bolder; color: #000;" class="title">You</div> -->
     <span style="color: white;">
         {{ message }}
     </span>
@@ -12,7 +12,7 @@
 </div>
     {% else %}
 <div class="card-panel left blue lighten-5" style="width: 75%; position: relative">
-    <div style="position: absolute; top: 0; left:3px; font-weight: bolder" class="title">{{ message.sender }}</div>
+    <!-- <div style="position: absolute; top: 0; left:3px; font-weight: bolder" class="title">{{ message.sender }}</div> -->
     {{ message }}
 </div>
     {% endif %}

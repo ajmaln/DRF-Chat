@@ -8,6 +8,8 @@ from rest_framework.parsers import JSONParser
 from chat.models import Message, UserProfile
 from chat.serializers import MessageSerializer, UserSerializer
 from chat.handoff import *
+from chat.rasa_call import * 
+
 chat_system_address = 'localhost:8000'
 def index(request):
     if request.user.is_authenticated:
@@ -47,45 +49,6 @@ def user_list(request, pk=None):
         except Exception:
             return JsonResponse({'error': "Something went wrong"}, status=400)
 
-## Rasa part start 
-
-
-# importing the requests library
-import requests
-  
-# api-endpoint
-URL = "http://10.100.14.175:5001/webhooks/rest/webhook"
-
-def call_rasa(data):
-
-    # defining a params dict for the parameters to be sent to the API
-    PARAMS = {
-            "sender": data["sender"],
-            "message": data["message"]
-        }
-    # sending get request and saving the response as response object
-    r = requests.post(url = URL, json = PARAMS)
-    print("*"*100, '\n')
-    print(type(r.text), r.text)
-    bot_result =  eval(r.text)
-    print(bot_result, type(bot_result))
-    # r = [{"recipient_id":"test","text":"Can you please type your account number?"}]
-    for item in bot_result:
-        print(item)
-        bot_data = {
-            "sender": "rasa-bot",
-            "receiver": item["recipient_id"],
-            "message": item["text"],
-            "timestamp": "1234454"
-        }
-        user_id = int(User.objects.get(username=item["recipient_id"]).pk)
-        requests.post(url = f'http://10.100.14.175:8100/api/messages/4/{user_id}',\
-                json=bot_data)
-
-  
-
-## rasa end
-
 
 
 @csrf_exempt
@@ -106,17 +69,30 @@ def message_list(request, sender=None, receiver=None):
             data = JSONParser().parse(request)
             # data = {'sender': 'ridwan', 'receiver': 'rasa-bot', 'message': 'HELLO'}
             serializer = MessageSerializer(data=data) 
-           
+
+
+            user_id = int(User.objects.get(username='client').pk)
+            user_profile = UserProfile.objects.filter(user_id=user_id)
+            x = user_profile[0]
+
             # hand off section 
-            
-            if data['sender'] == 'client':
-                user_id = int(User.objects.get(username=data["sender"]).pk)
-                user_profile = UserProfile.objects.filter(user_id=user_id)
-                x = user_profile[0]
-                receiver = handoff_checking(data, user_profile)
+            if data['message'] == 'bot':
+                data['receiver'] = 'rasa-bot'
+                user_profile.update(handoff_to="rasa-bot")
+            elif data['message'] == 'human':
+                data['receiver'] = 'agent'
+                user_profile.update(handoff_to="agent")
+
+            elif data['sender'] == 'client':
+                
+                receiver = x.get_handoff_to 
                 data['receiver'] = receiver
                 print(">"*1000, data)
-            
+                
+                if data['receiver'] == 'rasa-bot' and x.api_sent == 'N' :
+                    user_profile.update(api_sent="Y")
+                    call_rasa_bot(data,user_profile)
+                    return 
             
             # agent_to_client_checking:
             if data['sender'] == 'agent':
@@ -124,7 +100,7 @@ def message_list(request, sender=None, receiver=None):
                 user_profile = UserProfile.objects.filter(user_id=user_id)
                 x = user_profile[0]
             print("-"*1000,data, x.get_handoff_to)
-            if x.get_handoff_to == 'human' and data['sender'] == 'agent':
+            if x.get_handoff_to == 'agent' and data['sender'] == 'agent':
                 data['sender'] = 'rasa-bot'
                 print("^"*1000,data)
                 # requests.post(url = f'http://{chat_system_address}/api/messages/4/{user_id}',\
