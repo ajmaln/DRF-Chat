@@ -7,8 +7,10 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from chat.models import Message, UserProfile
 from chat.serializers import MessageSerializer, UserSerializer
+from chat.handoff import *
+from chat.rasa_call import * 
 
-
+chat_system_address = 'localhost:8000'
 def index(request):
     if request.user.is_authenticated:
         return redirect('chats')
@@ -47,45 +49,6 @@ def user_list(request, pk=None):
         except Exception:
             return JsonResponse({'error': "Something went wrong"}, status=400)
 
-## Rasa part start 
-
-
-# importing the requests library
-import requests
-  
-# api-endpoint
-URL = "http://10.100.14.175:5001/webhooks/rest/webhook"
-
-def call_rasa(data):
-
-    # defining a params dict for the parameters to be sent to the API
-    PARAMS = {
-            "sender": data["sender"],
-            "message": data["message"]
-        }
-    # sending get request and saving the response as response object
-    r = requests.post(url = URL, json = PARAMS)
-    print("*"*100, '\n')
-    print(type(r.text), r.text)
-    bot_result =  eval(r.text)
-    print(bot_result, type(bot_result))
-    # r = [{"recipient_id":"test","text":"Can you please type your account number?"}]
-    for item in bot_result:
-        print(item)
-        bot_data = {
-            "sender": "rasa-bot",
-            "receiver": item["recipient_id"],
-            "message": item["text"],
-            "timestamp": "1234454"
-        }
-        user_id = int(User.objects.get(username=item["recipient_id"]).pk)
-        requests.post(url = f'http://10.100.14.175:8100/api/messages/4/{user_id}',\
-                json=bot_data)
-
-  
-
-## rasa end
-
 
 
 @csrf_exempt
@@ -104,15 +67,56 @@ def message_list(request, sender=None, receiver=None):
     elif request.method == 'POST':
         try:
             data = JSONParser().parse(request)
-            # data = {'sender': 'ridwan', 'receiver': 'rasa-bot', 'message': 'HELLO'}
+            # data = {'sender': 'ridwan', 'receiver': 'fin-agent', 'message': 'HELLO'}
             serializer = MessageSerializer(data=data) 
+
+
+            user_id = int(User.objects.get(username='client').pk)
+            user_profile = UserProfile.objects.filter(user_id=user_id)
+            x = user_profile[0]
+
+            # hand off section 
+            if data['message'] == 'bot':
+                data['receiver'] = 'fin-agent'
+                user_profile.update(handoff_to="fin-agent")
+            elif data['message'] == 'human':
+                data['receiver'] = 'agent'
+                user_profile.update(handoff_to="agent")
+
+            elif data['sender'] == 'client':
+                
+                receiver = x.get_handoff_to 
+                data['receiver'] = receiver
+                print(">"*1000, data)
+                
+                if data['receiver'] == 'fin-agent' and x.api_sent == 'N' :
+                    user_profile.update(api_sent="Y")
+                    call_rasa_bot(data,user_profile)
+                    return 
+            
+            # agent_to_client_checking:
+            if data['sender'] == 'agent':
+                user_id = int(User.objects.get(username=data["receiver"]).pk)
+                user_profile = UserProfile.objects.filter(user_id=user_id)
+                x = user_profile[0]
+            print("-"*1000,data, x.get_handoff_to)
+            if x.get_handoff_to == 'agent' and data['sender'] == 'agent':
+                data['sender'] = 'fin-agent'
+                print("^"*1000,data)
+                # requests.post(url = f'http://{chat_system_address}/api/messages/4/{user_id}',\
+                #     json=data)
             
             if serializer.is_valid():
                 serializer.save()
+                
                 return JsonResponse(serializer.data, status=201)
-        finally:
-            if data["receiver"] == 'rasa-bot':
-                call_rasa(data)
+           
+                    
+        
+
+        except Exception as e:
+            print (e)
+        
         return JsonResponse(serializer.errors, status=400)
 
 
@@ -139,7 +143,7 @@ def message_view(request, sender, receiver,agent = 6):
     
     messages = Message.objects.filter(sender_id=sender, receiver_id=receiver) |Message.objects.filter(sender_id=receiver, receiver_id=sender)
 
-    if sender == 9:
+    if sender == 6:
         agent_messages = Message.objects.filter(sender_id=9, receiver_id=6) |Message.objects.filter(sender_id=6, receiver_id=9)
         messages = agent_messages | messages
     if request.method == "GET":
@@ -160,3 +164,15 @@ def message_view(request, sender, receiver,agent = 6):
 # >>> messages = Message.objects.filter(sender_id=9, receiver_id=4) |Message.objects.filter(sender_id=4, receiver_id=6)                     
 # >>> agent_messages = Message.objects.filter(sender_id=9, receiver_id=6) |Message.objects.filter(sender_id=6, receiver_id=9)
 ## total_messages = agent_messages | messages
+
+
+
+# unit test 
+# from django.contrib.auth.models import User
+
+# from chat.models import Message, UserProfile
+# user_id = int(User.objects.get(username="client").pk)
+
+# x = UserProfile.objects.filter(user_id=user_id).first()
+# x.update(handoff_to="bot")
+# x.get_handoff_to

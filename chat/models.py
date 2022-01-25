@@ -9,10 +9,17 @@ from django.core.cache import cache
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
+    handoff_to = models.CharField(max_length=100, default="", null=True) 
+    # only required for handoff 
+    api_sent = models.CharField(max_length=100, default="N", null=True) 
+    
     def __str__(self):
         return self.user.username
-    
+
+    @property
+    def get_handoff_to(self):
+        return self.handoff_to
+
     def last_seen(self):
         return cache.get('last_seen_%s' % self.user.username)
     
